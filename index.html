@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarefa Grana</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+            width: 100%;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45A049;
+        }
+
+        .menu {
+            display: flex;
+            justify-content: space-between;
+            background-color: #4CAF50;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            color: white;
+            text-align: center;
+        }
+
+        .menu.hidden {
+            display: none;
+        }
+
+        .menu div {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .task, .wallet, .withdrawal {
+            background: white;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"], input[type="email"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .icon {
+            font-size: 20px;
+            margin-right: 5px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            text-align: center;
+        }
+
+        .image-container img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .task button {
+            margin-top: 10px;
+        }
+
+        #longuinhoButton {
+            margin: 0 auto;
+            display: block;
+            width: 60%;
+        }
+    </style>
+</head>
+<body>
+    <header>Tarefa Grana</header>
+
+    <!-- Tela de Login -->
+    <div id="login" class="container">
+        <h2>Bem-vindo ao Tarefa Grana!</h2>
+        <p>Insira seu e-mail para continuar:</p>
+        <input type="email" id="email" placeholder="Digite seu e-mail">
+        <button id="longuinhoButton" onclick="login()">Entrar</button>
+    </div>
+
+    <!-- Tela Principal -->
+    <div id="main" class="container hidden">
+        <!-- Tarefas -->
+        <div id="tasks" class="task hidden">
+            <h2><i class="icon">📋</i>Pesquisas Diárias</h2>
+            <div id="taskList"></div>
+        </div>
+
+        <!-- Carteira -->
+        <div id="wallet" class="wallet hidden">
+            <h2><i class="icon">💼</i>Carteira</h2>
+            <p>Saldo atual: R$ <span id="balance">0.00</span></p>
+            <h3>Solicitar Saque</h3>
+            <label for="holder">Nome do Titular:</label>
+            <input type="text" id="holder" placeholder="Digite seu nome completo">
+            <label for="key">Tipo de Chave PIX:</label>
+            <select id="key">
+                <option value="CPF">CPF</option>
+                <option value="E-mail">E-mail</option>
+                <option value="Telefone">Telefone</option>
+            </select>
+            <label for="pixKey">Chave PIX:</label>
+            <input type="text" id="pixKey" placeholder="Digite a chave PIX">
+            <label for="amount">Valor do Saque (Mín: R$100, Máx: R$500):</label>
+            <input type="number" id="amount" min="100" max="500" step="10" placeholder="Ex: 150">
+            <button type="button" onclick="withdraw()">Sacar</button>
+        </div>
+    </div>
+
+    <!-- Menu -->
+    <div class="menu hidden">
+        <div onclick="showTasks()"><i>📋</i>Minhas Tarefas</div>
+        <div onclick="showWallet()"><i>💼</i>Carteira</div>
+        <div onclick="logout()"><i>🚪</i>Sair</div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let taskIndex = 0;  // Para controlar qual tarefa está sendo exibida
+        const taskDatabase = [
+            {
+                company: "Coca-Cola",
+                questions: [
+                    { question: "Você bebe Coca-Cola? Quantas vezes ao dia?", value: 1.80, image: "logotipo-da-coca-cola-134001741.jpg" },
+                    { question: "Você recomendaria Coca-Cola para um amigo?", value: 1.20 },
+                    { question: "De 0 a 5, qual nota você daria para a Coca-Cola?", value: 0.80 }
+                ]
+            },
+            {
+                company: "Havaianas",
+                questions: [
+                    { question: "Você costuma comprar Havaianas?", value: 2.00, image: "cd3bb0_37436e6c78734ded9c933c3eb4b35d27~mv2.png" },
+                    { question: "Você recomendaria Havaianas para um amigo?", value: 1.50 },
+                    { question: "De 0 a 5, qual nota você daria para as Havaianas?", value: 1.00 }
+                ]
+            },
+            {
+                company: "Netflix",
+                questions: [
+                    { question: "Você assiste Netflix diariamente?", value: 2.50, image: "netflix-logo-7btr.jpg" },
+                    { question: "Você recomendaria a Netflix para um amigo?", value: 2.00 },
+                    { question: "De 0 a 5, qual nota você daria para a Netflix?", value: 1.50 }
+                ]
+            },
+            {
+                company: "Casas Bahia",
+                questions: [
+                    { question: "Você já comprou na Casas Bahia?", value: 2.20, image: "como-cadastrar-e-comecar-a-vender-nas-casas-bahia-2.jpg" },
+                    { question: "Você recomendaria a Casas Bahia para um amigo?", value: 1.80 },
+                    { question: "De 0 a 5, qual nota você daria para a Casas Bahia?", value: 1.30 }
+                ]
+            },
+            {
+                company: "Amazon",
+                questions: [
+                    { question: "Você já comprou na Amazon?", value: 3.00, image: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
+                    { question: "Você recomendaria a Amazon para um amigo?", value: 2.50 },
+                    { question: "De 0 a 5, qual nota você daria para a Amazon?", value: 2.00 }
+                ]
+            }
+        ];
+
+        function login() {
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                alert("Por favor, insira um e-mail válido.");
+                return;
+            }
+            localStorage.setItem('email', email);
+            balance = parseFloat(localStorage.getItem(`${email}_balance`)) || 0;
+            document.getElementById('balance').textContent = balance.toFixed(2);
+            showTasks();  // Exibe as tarefas
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('main').classList.remove('hidden');
+            document.querySelector('.menu').classList.remove('hidden');
+        }
+
+        function showTasks() {
+            if (taskIndex >= taskDatabase.length) {
+                alert("Você completou todas as tarefas de hoje! Volte amanhã para novas pesquisas.");
+                return;
+            }
+
+            const company = taskDatabase[taskIndex];
+            let questionHTML = `<div class="image-container">
+                                    <img src="${company.questions[0].image}" alt="Logo da empresa">
+                                    <h3>Pesquisa sobre ${company.company}</h3>
+                                  </div>`;
+
+            company.questions.forEach((task, index) => {
+                questionHTML += `
+                    <p>${task.question}</p>
+                    <input type="text" id="answer${taskIndex}_${index}" placeholder="Sua resposta">
+                `;
+            });
+
+            questionHTML += `<button onclick="submitAnswer(${taskIndex})">Enviar Resposta</button>`;
+            document.getElementById('taskList').innerHTML = questionHTML;
+            document.getElementById('tasks').classList.remove('hidden');
+            document.getElementById('wallet').classList.add('hidden');
+        }
+
+        function submitAnswer(index) {
+            const company = taskDatabase[index];
+            let totalValue = 0;
+
+            company.questions.forEach((task, i) => {
+                const answer = document.getElementById(`answer${index}_${i}`).value.trim();
+                if (!answer) {
+                    alert("Por favor, responda a todas as perguntas.");
+                    return;
+                }
+                totalValue += task.value;
+            });
+
+            balance += totalValue;
+            localStorage.setItem(`${localStorage.getItem('email')}_balance`, balance);
+            document.getElementById('balance').textContent = balance.toFixed(2);
+            alert(`Respostas enviadas! Você ganhou R$ ${totalValue.toFixed(2)}`);
+            
+            taskIndex++; // Avança para a próxima pesquisa
+
+            if (taskIndex < taskDatabase.length) {
+                showTasks(); // Exibe a próxima pesquisa
+            }
+        }
+
+        function showWallet() {
+            document.getElementById('wallet').classList.remove('hidden');
+            document.getElementById('tasks').classList.add('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('email');
+            document.getElementById('login').classList.remove('hidden');
+            document.getElementById('main').classList.add('hidden');
+            document.querySelector('.menu').classList.add('hidden');
+        }
+
+        function withdraw() {
+            const holder = document.getElementById('holder').value.trim();
+            const key = document.getElementById('key').value;
+            const pixKey = document.getElementById('pixKey').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (!holder || !pixKey || isNaN(amount) || amount < 100 || amount > 500) {
+                alert("Preencha todos os campos corretamente.");
+                return;
+            }
+
+            if (balance < amount) {
+                alert("Saldo insuficiente.");
+                return;
+            }
+
+            balance -= amount;
+            localStorage.setItem(`${localStorage.getItem('email')}_balance`, balance);
+            document.getElementById('balance').textContent = balance.toFixed(2);
+            alert(`Saque de R$ ${amount.toFixed(2)} realizado com sucesso!`);
+        }
+    </script>
+</body>
+</html>
